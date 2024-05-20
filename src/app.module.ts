@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { join } from 'path';
       poolSize: 10,
       connectorPackage: 'mysql2',
     }),
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
