@@ -26,7 +26,9 @@ export class UserService {
   async signUp(user: CreateUserDto) {
     console.log(user);
 
-    const captcha = await this.redisService.get(`captach_${user.email}`);
+    const captcha = await this.redisService.get(`captcha_${user.email}`);
+
+    console.log(`captcha_${user.email}`);
 
     if (!captcha) {
       throw new HttpException('验证码已过期', HttpStatus.BAD_REQUEST);
@@ -41,6 +43,7 @@ export class UserService {
     });
 
     if (foudUser) {
+      await this.redisService.delete(`captcha_${user.email}`);
       throw new HttpException('邮箱已存在', HttpStatus.BAD_REQUEST);
     }
 
@@ -54,19 +57,21 @@ export class UserService {
 
     try {
       await this.userRepository.save(newUser);
+      await this.redisService.delete(`captcha_${user.email}`);
       return '注册成功';
     } catch (e) {
       this.logger.error(e, UserService);
+
+      await this.redisService.delete(`captcha_${user.email}`);
       return '注册失败';
     }
-    // return user;
   }
 
   async sendCaptcha(email: string) {
     this.logger.log(`send captcha to ${email}`);
     if (email) {
       const captcha = Math.random().toString().slice(2, 8);
-      this.redisService.set(`captach_${email}`, captcha, 600);
+      this.redisService.set(`captcha_${email}`, captcha, 600);
       return captcha;
     } else {
       throw new HttpException('邮箱不能为空', HttpStatus.BAD_REQUEST);
