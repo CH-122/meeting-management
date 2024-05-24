@@ -6,6 +6,10 @@
     "spec": false
   },
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "watchAssets": true,
+    "assets": [
+      "**/*.env"
+    ]
   }
 }
