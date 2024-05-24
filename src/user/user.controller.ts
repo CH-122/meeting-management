@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -40,5 +40,12 @@ export class UserController {
   async adminLogin(@Body() loginUserDto: LoginUserDto) {
     console.log(loginUserDto);
     return await this.userService.login(loginUserDto, true);
+  }
+
+  @Get('role_and_permission/:userid')
+  async getRoleAndPermission(@Param('userid') userid: number) {
+    console.log('userid', userid);
+
+    return await this.userService.getRoleAndPermission(userid);
   }
 }

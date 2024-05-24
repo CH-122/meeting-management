@@ -16,6 +16,8 @@ import { EmailService } from 'src/email/email.service';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
 import { LoginUserDto } from './dto/login-user.dto';
+import { LoginVo } from './vo/login.vo';
+import { UserRole } from './entities/user_roles.entity';
 
 @Injectable()
 export class UserService {
@@ -35,6 +37,9 @@ export class UserService {
 
   @InjectRepository(Permission)
   private permissionRepository: Repository<Permission>;
+
+  @InjectRepository(UserRole)
+  private userRoleRepository: Repository<UserRole>;
 
   async signUp(user: CreateUserDto) {
     console.log(user);
@@ -125,6 +130,58 @@ export class UserService {
       }
     }
 
-    return '登录成功';
+    const loginVo = new LoginVo();
+
+    loginVo.username = user.username;
+    loginVo.userid = user.id.toString();
+
+    return loginVo;
+  }
+
+  async getRoleAndPermission(userid: number) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userRoles', 'userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .leftJoinAndSelect('role.rolePermissions', 'rolePermission')
+      .leftJoinAndSelect('rolePermission.permission', 'permission')
+      .where('user.id = :userid', { userid })
+      .getOne();
+
+    // const user = await this.userRoleRepository
+    //   .createQueryBuilder('userRole')
+    //   .where('userRole.user_id = :userid', { userid })
+    //   .getOne();
+
+    console.log(user);
+
+    if (!user) {
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    // const userRole = await this.userRoleRepository.find({
+    //   userId: userid,
+    // });
+
+    // console.log(userRole);
+
+    // if (userRole.length === 0) {
+    //   throw new HttpException('该用户暂无角色', HttpStatus.BAD_REQUEST);
+    // }
+
+    // const permissions = await this.permissionRepository.find({
+    //   where: {
+    //     id: In(role.permissions),
+    //   },
+    // });
+
+    // if (!permissions) {
+    //   throw new HttpException('权限不存在', HttpStatus.BAD_REQUEST);
+    // }
+
+    return {
+      // role,
+      // permissions,
+    };
   }
 }
