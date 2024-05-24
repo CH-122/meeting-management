@@ -12,6 +12,10 @@ import { Repository } from 'typeorm';
 import { RedisService } from 'src/redis/redis.service';
 import { md5 } from 'src/utils';
 import { User } from './entities/user.entity';
+import { EmailService } from 'src/email/email.service';
+import { Role } from './entities/role.entity';
+import { Permission } from './entities/permission.entity';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UserService {
@@ -20,8 +24,17 @@ export class UserService {
   @Inject(RedisService)
   private readonly redisService: RedisService;
 
+  @Inject(EmailService)
+  private readonly emailService: EmailService;
+
   @InjectRepository(User)
   private userRepository: Repository<User>;
+
+  @InjectRepository(Role)
+  private roleRepository: Repository<Role>;
+
+  @InjectRepository(Permission)
+  private permissionRepository: Repository<Permission>;
 
   async signUp(user: CreateUserDto) {
     console.log(user);
@@ -72,9 +85,46 @@ export class UserService {
     if (email) {
       const captcha = Math.random().toString().slice(2, 8);
       this.redisService.set(`captcha_${email}`, captcha, 600);
-      return captcha;
+
+      try {
+        await this.emailService.sendMail({
+          to: email,
+          subject: '会议室预约系统注册验证码',
+          html: `<h1>验证码：${captcha}，有效期为 10 分钟</h1>`,
+        });
+      } catch (error) {
+        throw new HttpException(error, HttpStatus.BAD_REQUEST);
+      }
+
+      return '验证码发送成功，请注意查收' + captcha;
     } else {
       throw new HttpException('邮箱不能为空', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async login(loginUserDto: LoginUserDto, isAdmin: boolean = false) {
+    const user = await this.userRepository.findOneBy({
+      username: loginUserDto.username,
+    });
+
+    if (!user) {
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.password !== md5(loginUserDto.password)) {
+      throw new HttpException('密码不正确', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.isFrozen) {
+      throw new HttpException('用户已被冻结', HttpStatus.BAD_REQUEST);
+    }
+
+    if (isAdmin) {
+      if (!user.isAdmin) {
+        throw new HttpException('用户不是管理员', HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    return '登录成功';
   }
 }
