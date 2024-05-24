@@ -8,12 +8,12 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     this.transporter = createTransport({
-      host: configService.get('nodemailer_server_host'),
-      port: configService.get('nodemailer_server_port'),
-      secure: true,
+      host: this.configService.get('nodemailer_server_host'),
+      port: this.configService.get('nodemailer_server_port'),
+      secure: false,
       auth: {
-        user: configService.get('nodemailer_auth_username'),
-        pass: configService.get('nodemailer_auth_pass'),
+        user: this.configService.get('nodemailer_auth_user'),
+        pass: this.configService.get('nodemailer_auth_pass'),
       },
     });
   }
@@ -22,7 +22,7 @@ export class EmailService {
     await this.transporter.sendMail({
       from: {
         name: '会议室预定系统',
-        address: this.configService.get('nodemailer_auth_username'),
+        address: this.configService.get('nodemailer_auth_user'),
       },
       to,
       subject,
