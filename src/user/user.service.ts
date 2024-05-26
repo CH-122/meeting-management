@@ -147,7 +147,6 @@ export class UserService {
       .leftJoinAndSelect('rolePermission.permission', 'permission')
       .where('user.id = :userid', { userid })
       .getOne();
-
     // const user = await this.userRoleRepository
     //   .createQueryBuilder('userRole')
     //   .where('userRole.user_id = :userid', { userid })
@@ -159,6 +158,32 @@ export class UserService {
       throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
     }
 
+    const userInfo = {
+      id: user.id,
+      username: user.username,
+      nickName: user.nickName,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      createTime: user.createTime,
+      isFrozen: user.isFrozen,
+      isAdmin: user.isAdmin,
+      roles: user.userRoles.map((item) => item.role.name),
+      permissions: user.userRoles.reduce((arr, item) => {
+        item.role.rolePermissions.forEach((permission) => {
+          if (arr.indexOf(permission) === -1) {
+            if (
+              arr.findIndex((item) => item.id === permission.permission.id) ===
+              -1
+            )
+              arr.push(permission.permission);
+          }
+        });
+        return arr;
+      }, []),
+    };
+
+    return userInfo;
     // const userRole = await this.userRoleRepository.find({
     //   userId: userid,
     // });
