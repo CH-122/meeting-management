@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
+import { RequireAdminGuard } from './guard/require-admin.guard';
 
 @Module({
   imports: [
@@ -66,6 +67,10 @@ import { PermissionGuard } from './permission.guard';
     {
       provide: APP_GUARD,
       useClass: PermissionGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RequireAdminGuard,
     },
   ],
   exports: [],

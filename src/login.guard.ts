@@ -14,6 +14,7 @@ import { UnLoginException } from './filter/unlogin.filter';
 export interface JwtUserData {
   userid: string;
   username: string;
+  isAdmin: boolean;
   roles: string[];
   permissions: Permission[];
 }

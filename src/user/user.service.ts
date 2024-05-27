@@ -148,6 +148,7 @@ export class UserService {
       {
         userid: user.id.toString(),
         username: user.username,
+        isAdmin: user.isAdmin,
         roles: roleAndPermission.roles,
         permissions: roleAndPermission.permissions,
       },

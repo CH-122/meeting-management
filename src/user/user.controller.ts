@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  Req,
+  SetMetadata,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -72,6 +81,7 @@ export class UserController {
   }
   @Get('user_list')
   @RequireLogin()
+  @SetMetadata('require-admin', true)
   // @RequireAdmin()
   async getUserList(
     @Query('pageNumber') pageNumber: number,

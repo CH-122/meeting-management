@@ -13,6 +13,7 @@ import { Permission } from './entity/permission.entity';
 interface JwtUserData {
   userid: string;
   username: string;
+  isAdmin: boolean;
   roles: string[];
   permissions: Permission[];
 }
