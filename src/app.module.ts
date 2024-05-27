@@ -8,6 +8,10 @@ import { RedisModule } from './redis/redis.module';
 import { EmailService } from './email/email.service';
 import { EmailModule } from './email/email.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { APP_GUARD } from '@nestjs/core';
+import { LoginGuard } from './login.guard';
+import { PermissionGuard } from './permission.guard';
 
 @Module({
   imports: [
@@ -36,8 +40,34 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       isGlobal: true,
       envFilePath: 'src/.env',
     }),
+
+    JwtModule.registerAsync({
+      global: true,
+      useFactory(configService: ConfigService) {
+        return {
+          secret: configService.get('jwt_secret'),
+          signOptions: {
+            expiresIn: configService.get('jwt_expires_in'),
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService],
+  providers: [
+    AppService,
+    EmailService,
+
+    {
+      provide: APP_GUARD,
+      useClass: LoginGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
+    },
+  ],
+  exports: [],
 })
 export class AppModule {}
