@@ -3,15 +3,15 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { Permission } from './entity/permission.entity';
+import { UnLoginException } from './filter/unlogin.filter';
 
-interface JwtUserData {
+export interface JwtUserData {
   userid: string;
   username: string;
   roles: string[];
@@ -48,19 +48,11 @@ export class LoginGuard implements CanActivate {
     const authorization = request.headers.authorization;
 
     if (!authorization) {
-      throw new UnauthorizedException('用户未登录');
+      throw new UnLoginException('用户未登录');
     }
 
     try {
-      console.log(authorization);
-
-      // const token = authorization.split(' ')[1];
-
-      // console.log(token);
-
       const data = this.jwtService.verify<JwtUserData>(authorization);
-
-      console.log(data);
 
       // this.userService.getRoleAndPermission(data.userid).then((res) => {
       request.user = {
@@ -74,7 +66,7 @@ export class LoginGuard implements CanActivate {
     } catch (e) {
       console.log(e);
 
-      throw new UnauthorizedException('登录过期，请重新登录');
+      throw new UnLoginException('登录过期，请重新登录');
     }
   }
 }

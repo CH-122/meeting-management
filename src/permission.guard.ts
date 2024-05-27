@@ -44,8 +44,6 @@ export class PermissionGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    console.log(requiredPermissions);
-
     if (!requiredPermissions) {
       return true;
     }
@@ -54,11 +52,6 @@ export class PermissionGuard implements CanActivate {
       const curPermission = requiredPermissions[i];
 
       const found = permissions.some((item) => {
-        console.log(
-          ' item.code === curPermission',
-          item.code === curPermission,
-        );
-
         return item.code === curPermission;
       });
 
