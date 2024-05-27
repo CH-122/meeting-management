@@ -21,6 +21,8 @@ import { UserRole } from './entities/user_roles.entity';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RoleAndPermissionVO } from './vo/roleAndPermission.vo';
+import { UserInfoVo } from './vo/userInfo.vo';
+import { ModifyPasswordDto } from './dto/modify-password.dto';
 
 @Injectable()
 export class UserService {
@@ -51,11 +53,7 @@ export class UserService {
   private configService: ConfigService;
 
   async signUp(user: CreateUserDto) {
-    console.log(user);
-
     const captcha = await this.redisService.get(`captcha_${user.email}`);
-
-    console.log(`captcha_${user.email}`);
 
     if (!captcha) {
       throw new HttpException('验证码已过期', HttpStatus.BAD_REQUEST);
@@ -182,8 +180,6 @@ export class UserService {
     //   .where('userRole.user_id = :userid', { userid })
     //   .getOne();
 
-    console.log(user);
-
     if (!user) {
       throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
     }
@@ -240,5 +236,78 @@ export class UserService {
     //   // role,
     //   // permissions,
     // };
+  }
+
+  async getBasicInfo(userid: string): Promise<UserInfoVo> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :userid', { userid })
+      .getOne();
+
+    if (!user) {
+      throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    let userInfo = new UserInfoVo();
+
+    userInfo = {
+      id: user.id.toString(),
+      username: user.username,
+      nickName: user.nickName,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
+      createTime: user.createTime.toString(),
+    };
+
+    return userInfo;
+  }
+
+  async modifyPassword(userid: string, modifyPasswordDto: ModifyPasswordDto) {
+    console.log(userid, modifyPasswordDto);
+
+    const captcah = await this.redisService.get(
+      `captcha_${modifyPasswordDto.email}`,
+    );
+
+    if (!captcah) {
+      throw new HttpException('验证码已过期', HttpStatus.BAD_REQUEST);
+    }
+
+    if (captcah !== modifyPasswordDto.captcha) {
+      throw new HttpException('验证码不正确', HttpStatus.BAD_REQUEST);
+    }
+
+    const foundUser = await this.userRepository.findOneBy({
+      id: +userid,
+    });
+
+    foundUser.password = md5(modifyPasswordDto.password);
+
+    try {
+      await this.userRepository.save(foundUser);
+      this.redisService.delete(`captcha_${modifyPasswordDto.email}`);
+      return '密码修改成功';
+    } catch (e) {
+      this.logger.error(e, UserService);
+      this.redisService.delete(`captcha_${modifyPasswordDto.email}`);
+      throw new HttpException('密码修改失败', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getUserList(pageNumber: number, pageSize: number): Promise<any> {
+    console.log(pageNumber, pageSize);
+
+    const [rows, total] = await this.userRepository.findAndCount({
+      skip: (pageNumber - 1) * pageSize,
+      take: pageSize,
+      order: {
+        id: 'DESC',
+      },
+    });
+    return {
+      rows: rows,
+      total: total,
+    };
   }
 }
