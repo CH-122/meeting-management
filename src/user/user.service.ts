@@ -18,6 +18,9 @@ import { Permission } from './entities/permission.entity';
 import { LoginUserDto } from './dto/login-user.dto';
 import { LoginVo } from './vo/login.vo';
 import { UserRole } from './entities/user_roles.entity';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { RoleAndPermissionVO } from './vo/roleAndPermission.vo';
 
 @Injectable()
 export class UserService {
@@ -40,6 +43,12 @@ export class UserService {
 
   @InjectRepository(UserRole)
   private userRoleRepository: Repository<UserRole>;
+
+  @Inject(JwtService)
+  private jwtService: JwtService;
+
+  @Inject(ConfigService)
+  private configService: ConfigService;
 
   async signUp(user: CreateUserDto) {
     console.log(user);
@@ -135,10 +144,31 @@ export class UserService {
     loginVo.username = user.username;
     loginVo.userid = user.id.toString();
 
+    const roleAndPermission = await this.getRoleAndPermission(user.id);
+
+    loginVo.accessToken = this.jwtService.sign(
+      {
+        userid: user.id.toString(),
+        username: user.username,
+        roles: roleAndPermission.roles,
+        permissions: roleAndPermission.permissions,
+      },
+      {
+        expiresIn: this.configService.get('jwt_expires_in'),
+      },
+    );
+
+    loginVo.refreshToken = this.jwtService.sign(
+      {
+        userid: user.id.toString(),
+      },
+      { expiresIn: this.configService.get('jwt_refresh_expires_in') },
+    );
+
     return loginVo;
   }
 
-  async getRoleAndPermission(userid: number) {
+  async getRoleAndPermission(userid: number): Promise<RoleAndPermissionVO> {
     const user = await this.userRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.userRoles', 'userRole')
@@ -158,14 +188,16 @@ export class UserService {
       throw new HttpException('用户不存在', HttpStatus.BAD_REQUEST);
     }
 
-    const userInfo = {
-      id: user.id,
+    let userInfo = new RoleAndPermissionVO();
+
+    userInfo = {
+      id: user.id.toString(),
       username: user.username,
       nickName: user.nickName,
       email: user.email,
       phone: user.phone,
       avatar: user.avatar,
-      createTime: user.createTime,
+      createTime: user.createTime.toString(),
       isFrozen: user.isFrozen,
       isAdmin: user.isAdmin,
       roles: user.userRoles.map((item) => item.role.name),
@@ -204,9 +236,9 @@ export class UserService {
     //   throw new HttpException('权限不存在', HttpStatus.BAD_REQUEST);
     // }
 
-    return {
-      // role,
-      // permissions,
-    };
+    // return {
+    //   // role,
+    //   // permissions,
+    // };
   }
 }
