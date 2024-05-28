@@ -1,17 +1,8 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  SetMetadata,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { RequireLogin, UserInfo } from 'src/custom.decorator';
+import { RequireAdmin, RequireLogin, UserInfo } from 'src/custom.decorator';
 import { JwtUserData } from 'src/login.guard';
 import { Request } from 'express';
 import { ModifyPasswordDto } from './dto/modify-password.dto';
@@ -81,12 +72,21 @@ export class UserController {
   }
   @Get('user_list')
   @RequireLogin()
-  @SetMetadata('require-admin', true)
-  // @RequireAdmin()
+  // @SetMetadata('require-admin', true)
+  @RequireAdmin()
   async getUserList(
     @Query('pageNumber') pageNumber: number,
     @Query('pageSize') pageSize: number,
+    @Query('username') username: string,
+    @Query('email') email: string,
+    @Query('nickName') nickName: string,
   ) {
-    return await this.userService.getUserList(pageNumber, pageSize);
+    return await this.userService.getUserList(
+      pageNumber,
+      pageSize,
+      username,
+      email,
+      nickName,
+    );
   }
 }

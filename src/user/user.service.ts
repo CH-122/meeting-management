@@ -8,7 +8,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { RedisService } from 'src/redis/redis.service';
 import { md5 } from 'src/utils';
 import { User } from './entities/user.entity';
@@ -296,15 +296,36 @@ export class UserService {
     }
   }
 
-  async getUserList(pageNumber: number, pageSize: number): Promise<any> {
+  async getUserList(
+    pageNumber: number,
+    pageSize: number,
+    username: string,
+    email: string,
+    nickName: string,
+  ): Promise<any> {
     console.log(pageNumber, pageSize);
+
+    if (pageNumber < 1) {
+      throw new HttpException('页码不正确', HttpStatus.BAD_REQUEST);
+    }
+
+    if (pageSize < 1) {
+      throw new HttpException('页大小不正确', HttpStatus.BAD_REQUEST);
+    }
+
+    const condition: Record<string, any> = {};
+
+    if (username) condition['username'] = Like(`%${username}%`);
+    if (email) condition['email'] = Like(`%${email}%`);
+    if (nickName) condition['nickName'] = Like(`%${nickName}%`);
 
     const [rows, total] = await this.userRepository.findAndCount({
       skip: (pageNumber - 1) * pageSize,
       take: pageSize,
       order: {
-        id: 'DESC',
+        id: 'ASC',
       },
+      where: condition,
     });
     return {
       rows: rows,

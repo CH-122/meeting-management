@@ -9,6 +9,8 @@ export const RequireLogin = () => SetMetadata('require-login', true);
 export const RequirePermission = (...permissions: string[]) =>
   SetMetadata('require-permission', permissions);
 
+export const RequireAdmin = () => SetMetadata('require-admin', true);
+
 export const UserInfo = createParamDecorator(
   (key: string, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
