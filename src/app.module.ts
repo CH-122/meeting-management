@@ -13,6 +13,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
 import { RequireAdminGuard } from './guard/require-admin.guard';
+import { MeetingRoomModule } from './meeting-room/meeting-room.module';
 
 @Module({
   imports: [
@@ -54,6 +55,8 @@ import { RequireAdminGuard } from './guard/require-admin.guard';
       },
       inject: [ConfigService],
     }),
+
+    MeetingRoomModule,
   ],
   controllers: [AppController],
   providers: [

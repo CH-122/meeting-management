@@ -1,7 +1,7 @@
-CREATE DATABASE metting_reservation DEFAULT CHARACTER 
+CREATE DATABASE meeting_reservation DEFAULT CHARACTER 
 SET utf8mb4;
 
-USE  `metting_reservation`;
+USE  `meeting_reservation`;
 
 CREATE TABLE `users` (
 	id INT AUTO_INCREMENT PRIMARY KEY NOT NULL COMMENT '用户id',
