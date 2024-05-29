@@ -26,9 +26,9 @@ export class CreateMeetingRoomDto {
   @MaxLength(100, { message: '会议室描述不能超过200个字符' })
   description: string;
 
-  @IsNotEmpty({ message: '创建时间不能为空' })
+  @IsOptional()
   createTime: number;
 
-  @IsNotEmpty({ message: '更新时间不能为空' })
+  @IsOptional()
   updateTime: number;
 }

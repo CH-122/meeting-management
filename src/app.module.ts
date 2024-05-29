@@ -14,6 +14,7 @@ import { LoginGuard } from './login.guard';
 import { PermissionGuard } from './permission.guard';
 import { RequireAdminGuard } from './guard/require-admin.guard';
 import { MeetingRoomModule } from './meeting-room/meeting-room.module';
+import { BookingModule } from './booking/booking.module';
 
 @Module({
   imports: [
@@ -57,6 +58,8 @@ import { MeetingRoomModule } from './meeting-room/meeting-room.module';
     }),
 
     MeetingRoomModule,
+
+    BookingModule,
   ],
   controllers: [AppController],
   providers: [

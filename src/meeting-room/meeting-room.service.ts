@@ -4,6 +4,7 @@ import { CreateMeetingRoomDto } from './dto/create-meeting-room.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MeetingRoom } from './entities/meeting-room.entity';
 import { Repository } from 'typeorm';
+import { UpdateMeetingRoomDto } from './dto/update-meeting-room.dto';
 
 @Injectable()
 export class MeetingRoomService {
@@ -11,6 +12,8 @@ export class MeetingRoomService {
   private readonly meetingRoomRepository: Repository<MeetingRoom>;
 
   async add(createMeetingRoomDto: CreateMeetingRoomDto) {
+    createMeetingRoomDto.createTime = Date.now();
+    createMeetingRoomDto.updateTime = Date.now();
     return await this.meetingRoomRepository.insert(createMeetingRoomDto);
   }
 
@@ -40,5 +43,39 @@ export class MeetingRoomService {
     } catch (error) {
       return error;
     }
+  }
+
+  async update(id: string, updateMeetingRoomDto: UpdateMeetingRoomDto) {
+    const meetingRoom = await this.meetingRoomRepository.findOneBy({
+      id: +id,
+    });
+
+    if (!meetingRoom) {
+      throw new HttpException('会议室不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.meetingRoomRepository.update(
+      {
+        id: +id,
+      },
+      {
+        updateTime: Date.now(),
+        ...updateMeetingRoomDto,
+      },
+    );
+
+    // return '操作成功';
+  }
+
+  async getById(id: string) {
+    const meetingRoom = await this.meetingRoomRepository.findOneBy({
+      id: +id,
+    });
+
+    if (!meetingRoom) {
+      throw new HttpException('会议室不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    return meetingRoom;
   }
 }
