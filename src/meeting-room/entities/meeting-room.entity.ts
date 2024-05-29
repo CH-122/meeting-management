@@ -36,13 +36,11 @@ export class MeetingRoom {
 
   @Column({
     name: 'create_time',
-    length: 20,
   })
-  createTime: string;
+  createTime: number;
 
   @Column({
     name: 'update_time',
-    length: 20,
   })
-  updateTime: string;
+  updateTime: number;
 }
