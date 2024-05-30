@@ -35,13 +35,14 @@ export class BookingService {
   async findOne(id: number) {
     const bookingRecord = await this.bookingRepository
       .createQueryBuilder('booking')
-      .leftJoinAndSelect(
+      .leftJoinAndMapOne(
+        'booking.meetingRoom',
         MeetingRoom,
         'meetingRoom',
-        'meetingRoom.id = booking.roomId',
+        'booking.roomId = meetingRoom.id',
       )
       .where('booking.id = :id', { id })
-      .getRawMany();
+      .getOne();
 
     if (!bookingRecord) {
       throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
