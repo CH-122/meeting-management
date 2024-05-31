@@ -5,6 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
 import { Repository } from 'typeorm';
 import { MeetingRoom } from 'src/meeting-room/entities/meeting-room.entity';
+import { User } from 'src/user/entities/user.entity';
+import { BookingVo } from './vo/bookingVo';
+
+export interface BookingWithRelations extends Booking {
+  meetingRoom: MeetingRoom;
+  user: User;
+}
 
 @Injectable()
 export class BookingService {
@@ -33,7 +40,7 @@ export class BookingService {
   }
 
   async findOne(id: number) {
-    const bookingRecord = await this.bookingRepository
+    const bookingRecord = (await this.bookingRepository
       .createQueryBuilder('booking')
       .leftJoinAndMapOne(
         'booking.meetingRoom',
@@ -41,14 +48,31 @@ export class BookingService {
         'meetingRoom',
         'booking.roomId = meetingRoom.id',
       )
+      .leftJoinAndMapOne(
+        'booking.user',
+        User,
+        'user',
+        'booking.userid = user.id',
+      )
       .where('booking.id = :id', { id })
-      .getOne();
+      .getOne()) as BookingWithRelations;
 
     if (!bookingRecord) {
       throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
     }
 
-    return bookingRecord;
+    let bookingVo = new BookingVo();
+
+    bookingVo = { ...bookingRecord };
+
+    bookingVo.user = {
+      id: bookingRecord.user.id,
+      username: bookingRecord.user.username,
+      nickName: bookingRecord.user.nickName,
+      email: bookingRecord.user.email,
+    };
+
+    return bookingVo;
   }
 
   async delete(id: number) {
@@ -64,5 +88,20 @@ export class BookingService {
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async apply(id: number, userid: number) {
+    const bookingRecord = await this.bookingRepository.findOneBy({ id: id });
+    if (!bookingRecord) {
+      throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    if (bookingRecord.userid != userid) {
+      throw new HttpException('暂无权限', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.bookingRepository.update({ id: id }, { status: 1 });
+
+    return '操作成功';
   }
 }

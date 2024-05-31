@@ -36,4 +36,10 @@ export class BookingController {
   async deleteBooking(@Param('id') id: string) {
     return await this.bookingService.delete(+id);
   }
+
+  @Get('apply/:id')
+  @RequireLogin()
+  async apply(@Param('id') id: string, @UserInfo('uerid') userid: number) {
+    return await this.bookingService.apply(+id, userid);
+  }
 }

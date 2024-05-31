@@ -1,3 +1,5 @@
+import { MeetingRoom } from 'src/meeting-room/entities/meeting-room.entity';
+
 export class BookingVo {
   id: number;
   startTime: number;
@@ -6,8 +8,11 @@ export class BookingVo {
   note: string;
   createTime: number;
   updateTime: number;
-  meetingRoom: {
+  meetingRoom: MeetingRoom;
+  user: {
     id: number;
-    name: string;
+    username: string;
+    nickName: string;
+    email: string;
   };
 }
