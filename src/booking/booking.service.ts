@@ -90,17 +90,65 @@ export class BookingService {
     }
   }
 
-  async apply(id: number, userid: number) {
+  async apply(id: number, userid: string) {
     const bookingRecord = await this.bookingRepository.findOneBy({ id: id });
     if (!bookingRecord) {
       throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
     }
 
-    if (bookingRecord.userid != userid) {
+    console.log(bookingRecord, userid);
+
+    if (bookingRecord.userid.toString() !== userid) {
       throw new HttpException('暂无权限', HttpStatus.BAD_REQUEST);
     }
 
+    if (bookingRecord.status !== 0) {
+      throw new HttpException('该预约记录已被处理', HttpStatus.BAD_REQUEST);
+    }
+
     await this.bookingRepository.update({ id: id }, { status: 1 });
+
+    return '操作成功';
+  }
+
+  async reject(id: number, userid: string) {
+    const bookingRecord = await this.bookingRepository.findOneBy({ id: id });
+    if (!bookingRecord) {
+      throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    console.log(bookingRecord, userid);
+
+    if (bookingRecord.userid.toString() !== userid) {
+      throw new HttpException('暂无权限', HttpStatus.BAD_REQUEST);
+    }
+
+    if (bookingRecord.status !== 0) {
+      throw new HttpException('该预约记录已被处理', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.bookingRepository.update({ id: id }, { status: 2 });
+
+    return '操作成功';
+  }
+
+  async unbind(id: number, userid: string) {
+    const bookingRecord = await this.bookingRepository.findOneBy({ id: id });
+    if (!bookingRecord) {
+      throw new HttpException('该预约记录不存在', HttpStatus.BAD_REQUEST);
+    }
+
+    console.log(bookingRecord, userid);
+
+    if (bookingRecord.userid.toString() !== userid) {
+      throw new HttpException('暂无权限', HttpStatus.BAD_REQUEST);
+    }
+
+    if (bookingRecord.status !== 0) {
+      throw new HttpException('该预约记录已被处理', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.bookingRepository.update({ id: id }, { status: 3 });
 
     return '操作成功';
   }

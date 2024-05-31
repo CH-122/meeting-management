@@ -39,7 +39,17 @@ export class BookingController {
 
   @Get('apply/:id')
   @RequireLogin()
-  async apply(@Param('id') id: string, @UserInfo('uerid') userid: number) {
+  async apply(@Param('id') id: string, @UserInfo('userid') userid: string) {
     return await this.bookingService.apply(+id, userid);
+  }
+  @Get('reject/:id')
+  @RequireLogin()
+  async reject(@Param('id') id: string, @UserInfo('userid') userid: string) {
+    return await this.bookingService.reject(+id, userid);
+  }
+  @Get('unbind/:id')
+  @RequireLogin()
+  async unbind(@Param('id') id: string, @UserInfo('userid') userid: string) {
+    return await this.bookingService.unbind(+id, userid);
   }
 }
